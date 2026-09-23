@@ -1,0 +1,1 @@
+from ingestion_pipeline import ingestion_pipeline

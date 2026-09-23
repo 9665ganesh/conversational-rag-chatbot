@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocMind AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+            <a class="brand" href="/" aria-label="DocMind AI home">
+                <span class="brand-mark">D</span>
+                <span>DocMind AI</span>
+            </a>
+
+            <button class="primary-action" id="newChatBtn" type="button">
+                <i data-lucide="plus"></i>
+                <span>New Chat</span>
+            </button>
+
+            <button class="search-trigger" type="button" id="searchTrigger">
+                <i data-lucide="search"></i>
+                <span>Search conversations</span>
+                <kbd>Ctrl K</kbd>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Conversation navigation">
+            <section class="sidebar-section">
+                <button class="sidebar-section-title history-view-button" type="button" id="recentChatsBtn">
+                    <span id="historyLabel">Recent Chats</span>
+                    <i data-lucide="messages-square"></i>
+                </button>
+                <div id="history" class="history-list"></div>
+            </section>
+
+            <section class="sidebar-section compact-section">
+                <div class="sidebar-section-title">
+                    <span>Folders</span>
+                    <i data-lucide="folder"></i>
+                </div>
+                <button class="sidebar-item muted" type="button" id="pinnedChatsBtn">
+                    <i data-lucide="pin"></i>
+                    <span>Pinned</span>
+                </button>
+                <button class="sidebar-item muted" type="button" id="archivedChatsBtn">
+                    <i data-lucide="archive"></i>
+                    <span>Archived</span>
+                </button>
+            </section>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="sidebar-item" type="button" id="settingsBtn">
+                <i data-lucide="settings-2"></i>
+                <span>Settings</span>
+            </button>
+            <button class="account-button" type="button" id="accountBtn">
+                <span class="avatar-small" id="userAvatar">?</span>
+                <span>
+                    <strong id="userName">Guest</strong>
+                    <small id="userEmail">Not signed in</small>
+                </span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <button class="icon-button mobile-menu" type="button" id="menuButton" aria-label="Open menu">
+                <i data-lucide="panel-left"></i>
+            </button>
+
+            <div class="chat-meta">
+                <p>Current Chat</p>
+                <h1 id="chatTitle">Start with a document</h1>
+            </div>
+
+            <div class="header-actions">
+                <button class="icon-button" type="button" id="deleteChatBtn" aria-label="Delete chat" title="Delete chat" disabled>
+                    <i data-lucide="trash-2"></i>
+                </button>
+                <button class="icon-button" type="button" id="pinChatBtn" aria-label="Pin chat" title="Pin chat" disabled>
+                    <i data-lucide="pin"></i>
+                </button>
+                <button class="icon-button" type="button" id="archiveChatBtn" aria-label="Archive chat" title="Archive chat" disabled>
+                    <i data-lucide="archive"></i>
+                </button>
+                <button class="icon-button" type="button" id="shareChatBtn" aria-label="Share chat" title="Share chat" disabled>
+                    <i data-lucide="share-2"></i>
+                </button>
+                <button class="icon-button" type="button" id="themeToggle" aria-label="Toggle theme">
+                    <i data-lucide="moon"></i>
+                </button>
+                <button class="profile-button" type="button" id="profileBtn" aria-label="Profile">?</button>
+            </div>
+        </header>
+
+       <section id="uploadView" class="welcome-view">
+        <div class="welcome-inner">
+        <p class="eyebrow">Private document intelligence</p>
+
+        <h2>Chat with your source material in a quieter, faster workspace.</h2>
+
+        <p class="welcome-copy">
+            Upload a TXT or PDF file, ask questions, and keep answers grounded in the retrieved source context.
+        </p>
+
+        <div class="upload-panel">
+            <label class="drop-zone" for="file" id="dropZone">
+
+                <input id="file" type="file" accept=".txt,.pdf">
+
+                <span class="upload-icon">
+                    <i data-lucide="file-up"></i>
+                </span>
+
+                <span class="upload-title" id="fileLabel">
+                    Drop a TXT or PDF file or browse
+                </span>
+
+                <span class="upload-subtitle">
+                    Documents are indexed into your local knowledge base.
+                </span>
+
+            </label>
+
+            <button class="upload-button" type="button" onclick="uploadFile()">
+                <i data-lucide="upload-cloud"></i>
+                <span>Upload Document</span>
+            </button>
+        </div>
+
+                <div class="prompt-grid" aria-label="Prompt suggestions">
+                    <button class="prompt-card" type="button" data-prompt="Summarize the most important ideas in this document.">
+                        <i data-lucide="wand-sparkles"></i>
+                        <strong>Summarize</strong>
+                        <span>Extract the core ideas and decisions.</span>
+                    </button>
+                    <button class="prompt-card" type="button" data-prompt="What are the risks, tradeoffs, or open questions in this document?">
+                        <i data-lucide="scan-search"></i>
+                        <strong>Review</strong>
+                        <span>Find gaps, risks, and useful context.</span>
+                    </button>
+                    <button class="prompt-card" type="button" data-prompt="Create a concise action plan from this document.">
+                        <i data-lucide="list-checks"></i>
+                        <strong>Plan</strong>
+                        <span>Turn content into next steps.</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="chatView" class="chat-view" aria-live="polite">
+            <div id="chat-box" class="conversation"></div>
+        </section>
+
+        <form class="composer-shell" id="composerForm">
+            <div class="composer">
+                <button class="icon-button subtle" type="button" id="attachFileBtn" aria-label="Attach file" title="Attach file">
+                    <i data-lucide="paperclip"></i>
+                </button>
+                <textarea id="question" rows="1" placeholder="Ask anything about this document..." autocomplete="off"></textarea>
+                <button class="icon-button subtle" type="button" id="voiceInputBtn" aria-label="Voice input" title="Voice input">
+                    <i data-lucide="mic"></i>
+                </button>
+                <button class="send-button" type="submit" aria-label="Send message">
+                    <i data-lucide="arrow-up"></i>
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search conversations">
+    <div class="search-box">
+        <i data-lucide="search"></i>
+        <input id="globalSearch" type="search" placeholder="Search recent chats...">
+    </div>
+    <div id="searchResults" class="search-results"></div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<div class="settings-panel" id="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-header">
+        <div>
+            <p>Workspace</p>
+            <h2 id="settingsTitle">Settings</h2>
+        </div>
+        <button class="icon-button" type="button" id="closeSettingsBtn" aria-label="Close settings">
+            <i data-lucide="x"></i>
+        </button>
+    </div>
+
+    <div class="settings-group">
+        <label class="setting-row" for="themeSetting">
+            <span>
+                <strong>Theme</strong>
+                <small>Choose the workspace appearance.</small>
+            </span>
+            <select id="themeSetting">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </label>
+
+        <label class="setting-row toggle-row" for="compactMessagesSetting">
+            <span>
+                <strong>Compact messages</strong>
+                <small>Reduce vertical spacing in conversations.</small>
+            </span>
+            <input id="compactMessagesSetting" type="checkbox">
+        </label>
+
+        <label class="setting-row toggle-row" for="openSharedChatsSetting">
+            <span>
+                <strong>Open chat links</strong>
+                <small>Load a shared chat from the URL when present.</small>
+            </span>
+            <input id="openSharedChatsSetting" type="checkbox" checked>
+        </label>
+    </div>
+
+    <div class="settings-actions">
+        <button class="dialog-button" type="button" id="resetSettingsBtn">Reset</button>
+        <button class="dialog-button primary" type="button" id="saveSettingsBtn">Done</button>
+    </div>
+</div>
+
+<dialog class="confirm-dialog" id="deleteChatDialog" aria-labelledby="deleteChatTitle">
+    <form method="dialog">
+        <h2 id="deleteChatTitle">Delete this chat?</h2>
+        <p>Its messages and indexed document data will be permanently removed.</p>
+        <div class="dialog-actions">
+            <button class="dialog-button" value="cancel">Cancel</button>
+            <button class="dialog-button danger" id="confirmDeleteBtn" value="confirm">Delete</button>
+        </div>
+    </form>
+</dialog>
+
+<div class="auth-overlay" id="authOverlay"></div>
+<div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="auth-close" type="button" id="authCloseBtn" aria-label="Close">
+        <i data-lucide="x"></i>
+    </button>
+    <div class="auth-brand">
+        <span class="brand-mark">D</span>
+        <span>DocMind AI</span>
+    </div>
+    <h2 id="authTitle">Welcome back</h2>
+    <p class="auth-subtitle" id="authSubtitle">Sign in to continue to your workspace</p>
+
+    <div class="auth-tabs">
+        <button class="auth-tab active" type="button" id="loginTab" data-tab="login">Login</button>
+        <button class="auth-tab" type="button" id="signupTab" data-tab="signup">Sign Up</button>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-success" id="authSuccess"></div>
+
+    <form id="loginForm" class="auth-form" autocomplete="on">
+        <label class="auth-field">
+            <span>Username or Email</span>
+            <input type="text" id="loginIdentifier" name="identifier" placeholder="you@example.com" required autocomplete="username">
+        </label>
+        <label class="auth-field">
+            <span>Password</span>
+            <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required autocomplete="current-password">
+        </label>
+        <button class="auth-submit" type="submit">
+            <i data-lucide="log-in"></i>
+            <span>Sign In</span>
+        </button>
+    </form>
+
+    <form id="signupForm" class="auth-form" style="display:none" autocomplete="on">
+        <label class="auth-field">
+            <span>Username</span>
+            <input type="text" id="signupUsername" name="username" placeholder="Choose a username" required minlength="3" maxlength="30" autocomplete="username">
+        </label>
+        <label class="auth-field">
+            <span>Email</span>
+            <input type="email" id="signupEmail" name="email" placeholder="you@example.com" required autocomplete="email">
+        </label>
+        <label class="auth-field">
+            <span>Password</span>
+            <input type="password" id="signupPassword" name="password" placeholder="Min 6 characters" required minlength="6" autocomplete="new-password">
+        </label>
+        <label class="auth-field">
+            <span>Confirm Password</span>
+            <input type="password" id="signupConfirm" name="confirm" placeholder="Re-enter password" required minlength="6" autocomplete="new-password">
+        </label>
+        <button class="auth-submit" type="submit">
+            <i data-lucide="user-plus"></i>
+            <span>Create Account</span>
+        </button>
+    </form>
+</div>
+
+<div class="profile-menu" id="profileMenu" role="menu" aria-label="Profile menu">
+    <div class="profile-menu-user">
+        <span class="avatar-small" id="menuAvatar">?</span>
+        <span>
+            <strong id="menuUserName">Guest</strong>
+            <small id="menuUserEmail">Not signed in</small>
+        </span>
+    </div>
+    <button class="profile-menu-item" type="button" id="profileLogoutBtn" role="menuitem">
+        <i data-lucide="log-out"></i>
+        <span>Log out</span>
+    </button>
+</div>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
